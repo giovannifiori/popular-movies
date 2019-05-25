@@ -11,7 +11,17 @@ public class Movie {
     private float mVoteAverage;
     private float mPopularity;
 
-    Movie() {
+    public Movie() {
+    }
+
+    public Movie(int mId, String mTitle, String mPosterPath, String mSynopsis, Date mReleaseDate, float mVoteAverage, float mPopularity) {
+        this.mId = mId;
+        this.mTitle = mTitle;
+        this.mPosterPath = mPosterPath;
+        this.mSynopsis = mSynopsis;
+        this.mReleaseDate = mReleaseDate;
+        this.mVoteAverage = mVoteAverage;
+        this.mPopularity = mPopularity;
     }
 
     public int getId() {
