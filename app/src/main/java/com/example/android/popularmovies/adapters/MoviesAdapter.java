@@ -18,17 +18,33 @@ import java.util.List;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
     private List<Movie> mMoviesData;
+    private final PosterClickListener mClickListener;
 
-    public MoviesAdapter() {
-
+    public interface PosterClickListener {
+        /**
+         *
+         * @param selectedMovie Movie that was clicked
+         */
+        void onClick(Movie selectedMovie);
     }
 
-    class MoviesAdapterViewHolder extends RecyclerView.ViewHolder {
+    public MoviesAdapter(PosterClickListener listener) {
+        mClickListener = listener;
+    }
+
+    class MoviesAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private final ImageView mMoviePosterImageView;
 
         MoviesAdapterViewHolder(View view) {
             super(view);
             mMoviePosterImageView = view.findViewById(R.id.iv_movie_poster);
+            view.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            Movie selectedMovie = mMoviesData.get(getAdapterPosition());
+            mClickListener.onClick(selectedMovie);
         }
     }
 

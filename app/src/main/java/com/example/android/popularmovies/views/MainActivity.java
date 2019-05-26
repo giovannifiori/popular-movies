@@ -11,6 +11,7 @@ import android.view.Menu;
 import com.example.android.popularmovies.BuildConfig;
 import com.example.android.popularmovies.R;
 import com.example.android.popularmovies.adapters.MoviesAdapter;
+import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.services.IMovieService;
 import com.example.android.popularmovies.services.ServiceUtils;
 import com.example.android.popularmovies.services.responseModels.MovieAPIResponse;
@@ -19,7 +20,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MoviesAdapter.PosterClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     private RecyclerView mRecyclerView;
     private MoviesAdapter mMoviesAdapter;
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
         mRecyclerView = findViewById(R.id.rv_movies_list);
         mRecyclerView.setLayoutManager(layoutManager);
-        mMoviesAdapter = new MoviesAdapter();
+        mMoviesAdapter = new MoviesAdapter(this);
         mRecyclerView.setAdapter(mMoviesAdapter);
 
         fetchMovies();
@@ -64,5 +65,10 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "onFailure: ERROR" + t);
             }
         });
+    }
+
+    @Override
+    public void onClick(Movie selectedMovie) {
+        Log.d(TAG, "onClick: " + selectedMovie);
     }
 }
