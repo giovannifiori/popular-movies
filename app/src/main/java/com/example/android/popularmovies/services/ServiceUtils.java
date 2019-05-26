@@ -28,7 +28,7 @@ public class ServiceUtils {
     public static URL buildPosterUrl(String posterPath) {
         if (posterPath == null) return null;
         Uri builtUri = Uri.parse(API_POSTER_BASE_URL).buildUpon()
-                .path("/t/p/w185/" + posterPath)
+                .path("/t/p/w342/" + posterPath)
                 .appendQueryParameter(API_KEY_PARAM, BuildConfig.ApiKey)
                 .build();
 

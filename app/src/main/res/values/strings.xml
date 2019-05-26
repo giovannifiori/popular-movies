@@ -2,4 +2,5 @@
     <string name="app_name">PopularMovies</string>
     <string name="sort_by_popularity">Most popular</string>
     <string name="sort_by_rating">Top rated</string>
+    <string name="movie_poster_description">Movie poster</string>
 </resources>

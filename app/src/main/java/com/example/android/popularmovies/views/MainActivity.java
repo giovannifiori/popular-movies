@@ -1,6 +1,8 @@
 package com.example.android.popularmovies.views;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -8,6 +10,7 @@ import android.view.Menu;
 
 import com.example.android.popularmovies.BuildConfig;
 import com.example.android.popularmovies.R;
+import com.example.android.popularmovies.adapters.MoviesAdapter;
 import com.example.android.popularmovies.services.IMovieService;
 import com.example.android.popularmovies.services.ServiceUtils;
 import com.example.android.popularmovies.services.responseModels.MovieAPIResponse;
@@ -18,6 +21,8 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
+    private RecyclerView mRecyclerView;
+    private MoviesAdapter mMoviesAdapter;
     private IMovieService mMovieService;
 
     @Override
@@ -26,6 +31,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mMovieService = ServiceUtils.getIMovieService();
+
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2, RecyclerView.VERTICAL, false);
+
+        mRecyclerView = findViewById(R.id.rv_movies_list);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mMoviesAdapter = new MoviesAdapter();
+        mRecyclerView.setAdapter(mMoviesAdapter);
 
         fetchMovies();
     }
@@ -40,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
         mMovieService.getMovies("popular", BuildConfig.ApiKey).enqueue(new Callback<MovieAPIResponse>() {
             @Override
             public void onResponse(Call<MovieAPIResponse> call, Response<MovieAPIResponse> response) {
-                if (response.isSuccessful()) {
-                    //TODO send the response data to the adapter
+                if (response.isSuccessful() && response.body() != null) {
+                    mMoviesAdapter.setMoviesData(response.body().getMovies());
                 } else {
                     Log.d(TAG, "onResponse: with error");
                 }
