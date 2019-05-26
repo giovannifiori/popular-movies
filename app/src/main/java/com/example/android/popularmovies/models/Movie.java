@@ -1,20 +1,33 @@
 package com.example.android.popularmovies.models;
 
-import java.util.Date;
+import com.google.gson.annotations.SerializedName;
 
 public class Movie {
+    @SerializedName("id")
     private int mId;
+
+    @SerializedName("title")
     private String mTitle;
+
+    @SerializedName("poster_path")
     private String mPosterPath;
+
+    @SerializedName("overview")
     private String mSynopsis;
-    private Date mReleaseDate;
+
+    @SerializedName("release_date")
+    private String mReleaseDate;
+
+    @SerializedName("vote_average")
     private float mVoteAverage;
+
+    @SerializedName("popularity")
     private float mPopularity;
 
     public Movie() {
     }
 
-    public Movie(int mId, String mTitle, String mPosterPath, String mSynopsis, Date mReleaseDate, float mVoteAverage, float mPopularity) {
+    public Movie(int mId, String mTitle, String mPosterPath, String mSynopsis, String mReleaseDate, float mVoteAverage, float mPopularity) {
         this.mId = mId;
         this.mTitle = mTitle;
         this.mPosterPath = mPosterPath;
@@ -40,7 +53,7 @@ public class Movie {
         return mSynopsis;
     }
 
-    public Date getReleaseDate() {
+    public String getReleaseDate() {
         return mReleaseDate;
     }
 
@@ -50,34 +63,6 @@ public class Movie {
 
     public float getPopularity() {
         return mPopularity;
-    }
-
-    public void setId(int mId) {
-        this.mId = mId;
-    }
-
-    public void setTitle(String mTitle) {
-        this.mTitle = mTitle;
-    }
-
-    public void setPosterPath(String mPosterPath) {
-        this.mPosterPath = mPosterPath;
-    }
-
-    public void setSynopsis(String mSynopsis) {
-        this.mSynopsis = mSynopsis;
-    }
-
-    public void setReleaseDate(Date mReleaseDate) {
-        this.mReleaseDate = mReleaseDate;
-    }
-
-    public void setVoteAverage(float mVoteAverage) {
-        this.mVoteAverage = mVoteAverage;
-    }
-
-    public void setPopularity(float mPopularity) {
-        this.mPopularity = mPopularity;
     }
 
     @Override
