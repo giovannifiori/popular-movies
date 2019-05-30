@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -22,6 +23,7 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.PosterClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
+    public static final String MOVIE_EXTRA = "com.example.android.popularmovies_movie";
     private RecyclerView mRecyclerView;
     private MoviesAdapter mMoviesAdapter;
     private IMovieService mMovieService;
@@ -69,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
     @Override
     public void onClick(Movie selectedMovie) {
-        Log.d(TAG, "onClick: " + selectedMovie);
+        Intent detailsIntent = new Intent(MainActivity.this, MovieDetailsActivity.class);
+        detailsIntent.putExtra(MOVIE_EXTRA, selectedMovie);
+        startActivity(detailsIntent);
     }
 }
