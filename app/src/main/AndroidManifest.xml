@@ -15,7 +15,10 @@
             android:name=".views.MovieDetailsActivity"
             android:parentActivityName=".views.MainActivity"
             />
-        <activity android:name=".views.MainActivity">
+        <activity
+            android:name=".views.MainActivity"
+            android:configChanges="orientation|screenSize"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
