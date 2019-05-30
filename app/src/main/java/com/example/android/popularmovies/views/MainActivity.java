@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import com.example.android.popularmovies.BuildConfig;
 import com.example.android.popularmovies.R;
@@ -24,6 +26,7 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.PosterClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final String MOVIE_EXTRA = "com.example.android.popularmovies_movie";
+    private ProgressBar mLoadingIndicator;
     private RecyclerView mRecyclerView;
     private MoviesAdapter mMoviesAdapter;
     private IMovieService mMovieService;
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2, RecyclerView.VERTICAL, false);
 
+        mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
         mRecyclerView = findViewById(R.id.rv_movies_list);
         mRecyclerView.setLayoutManager(layoutManager);
         mMoviesAdapter = new MoviesAdapter(this);
@@ -52,9 +56,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     }
 
     private void fetchMovies() {
+        mLoadingIndicator.setVisibility(View.VISIBLE);
         mMovieService.getMovies("popular", BuildConfig.ApiKey).enqueue(new Callback<MovieAPIResponse>() {
             @Override
             public void onResponse(Call<MovieAPIResponse> call, Response<MovieAPIResponse> response) {
+                mLoadingIndicator.setVisibility(View.INVISIBLE);
                 if (response.isSuccessful() && response.body() != null) {
                     mMoviesAdapter.setMoviesData(response.body().getMovies());
                 } else {
@@ -64,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
             @Override
             public void onFailure(Call<MovieAPIResponse> call, Throwable t) {
+                mLoadingIndicator.setVisibility(View.INVISIBLE);
                 Log.d(TAG, "onFailure: ERROR" + t);
             }
         });
