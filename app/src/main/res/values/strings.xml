@@ -6,4 +6,6 @@
     <string name="release_date">Released on %s.</string>
     <string name="synopsis">Synopsis</string>
     <string name="vote_average">Average rating of %.1f.</string>
+    <string name="error_message">An error has ocurred. Please try again.</string>
+    <string name="refresh">Refresh</string>
 </resources>

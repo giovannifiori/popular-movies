@@ -2,15 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:title="@string/refresh"
+        android:icon="@drawable/ic_action_refresh"
+        android:id="@+id/action_refresh"
+        android:orderInCategory="1"
+        app:showAsAction="ifRoom"
+        />
+    <item
         android:title="@string/sort_by_popularity"
         android:id="@+id/action_popularity"
-        android:orderInCategory="1"
+        android:orderInCategory="2"
         app:showAsAction="never"
         />
     <item
         android:title="@string/sort_by_rating"
         android:id="@+id/action_top_rated"
-        android:orderInCategory="1"
+        android:orderInCategory="3"
         app:showAsAction="never"
         />
 </menu>
