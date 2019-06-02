@@ -16,6 +16,7 @@ public interface IMovieService {
     @GET("/3/movie/{sortType}")
     Call<MovieAPIResponse> getMovies(
             @Path("sortType") String sortType,
-            @Query("api_key") String apiKey
+            @Query("api_key") String apiKey,
+            @Query("page") int pageNumber
     );
 }

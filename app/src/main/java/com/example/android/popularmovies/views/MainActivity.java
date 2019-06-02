@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.popularmovies.BuildConfig;
 import com.example.android.popularmovies.R;
@@ -37,6 +38,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     private RecyclerView mRecyclerView;
     private MoviesAdapter mMoviesAdapter;
     private IMovieService mMovieService;
+    private boolean mIsLoadingMovies = false;
+    private int mMoviesPageNumber = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,16 +48,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
         mMovieService = ServiceUtils.getIMovieService();
 
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 2, RecyclerView.VERTICAL, false);
+        initializeComponents();
 
-        mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
-        mRecyclerView = findViewById(R.id.rv_movies_list);
-        mRecyclerView.setLayoutManager(layoutManager);
-        mMoviesAdapter = new MoviesAdapter(this);
-        mRecyclerView.setAdapter(mMoviesAdapter);
-        mErrorMessageTextView = findViewById(R.id.tv_error_message);
-
-        fetchMovies(SORT_MOST_POPULAR);
+        fetchMovies(SORT_MOST_POPULAR, false);
     }
 
     @Override
@@ -69,13 +65,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
         switch (selectedId) {
             case R.id.action_refresh:
-                fetchMovies(mLastSortedBy);
+                fetchMovies(mLastSortedBy, false);
                 break;
             case R.id.action_popularity:
-                fetchMovies(SORT_MOST_POPULAR);
+                fetchMovies(SORT_MOST_POPULAR, false);
                 break;
             case R.id.action_top_rated:
-                fetchMovies(SORT_TOP_RATED);
+                fetchMovies(SORT_TOP_RATED, false);
                 break;
         }
 
@@ -94,19 +90,26 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
-    private void fetchMovies(@NonNull String sortType) {
+    private void fetchMovies(@NonNull String sortType, final boolean append) {
+        mIsLoadingMovies = true;
         mLastSortedBy = sortType;
-        mRecyclerView.setVisibility(View.INVISIBLE);
-        mLoadingIndicator.setVisibility(View.VISIBLE);
-        mErrorMessageTextView.setVisibility(View.INVISIBLE);
+        if(!append) {
+            mMoviesPageNumber = 0;
+            mRecyclerView.setVisibility(View.INVISIBLE);
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+            mErrorMessageTextView.setVisibility(View.INVISIBLE);
+        }
 
-        mMovieService.getMovies(sortType, BuildConfig.ApiKey).enqueue(new Callback<MovieAPIResponse>() {
+        mMovieService.getMovies(sortType, BuildConfig.ApiKey, ++mMoviesPageNumber).enqueue(new Callback<MovieAPIResponse>() {
             @Override
             public void onResponse(Call<MovieAPIResponse> call, Response<MovieAPIResponse> response) {
+                mIsLoadingMovies = false;
                 if (response.isSuccessful() && response.body() != null) {
-                    mMoviesAdapter.setMoviesData(response.body().getMovies());
+                    mMoviesAdapter.setMoviesData(response.body().getMovies(), append);
                     showContent();
-                    mRecyclerView.smoothScrollToPosition(0);
+                    if(!append) {
+                        mRecyclerView.smoothScrollToPosition(0);
+                    }
                 } else {
                     Log.d(TAG, "onResponse: with error");
                     showErrorMessage();
@@ -115,7 +118,12 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
             @Override
             public void onFailure(Call<MovieAPIResponse> call, Throwable t) {
-                showErrorMessage();
+                mIsLoadingMovies = false;
+                if(!append) {
+                    showErrorMessage();
+                } else {
+                    Toast.makeText(MainActivity.this, "Error on fetching more movies.", Toast.LENGTH_SHORT).show();
+                }
                 Log.d(TAG, "onFailure: ERROR" + t);
             }
         });
@@ -126,5 +134,26 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         Intent detailsIntent = new Intent(MainActivity.this, MovieDetailsActivity.class);
         detailsIntent.putExtra(MOVIE_EXTRA, selectedMovie);
         startActivity(detailsIntent);
+    }
+
+    private void initializeComponents() {
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2, RecyclerView.VERTICAL, false);
+
+        mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
+        mRecyclerView = findViewById(R.id.rv_movies_list);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mMoviesAdapter = new MoviesAdapter(this);
+        mRecyclerView.setAdapter(mMoviesAdapter);
+        mErrorMessageTextView = findViewById(R.id.tv_error_message);
+
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if(!mRecyclerView.canScrollVertically(1) && !mIsLoadingMovies) {
+                    fetchMovies(mLastSortedBy, true);
+                }
+            }
+        });
     }
 }
