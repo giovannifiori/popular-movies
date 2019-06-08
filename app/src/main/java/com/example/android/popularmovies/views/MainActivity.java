@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     private static final String SORT_TOP_RATED = "top_rated";
     private String mLastSortedBy = null;
     private ProgressBar mLoadingIndicator;
+    private ProgressBar mListLoadingIndicator;
     private TextView mErrorMessageTextView;
     private RecyclerView mRecyclerView;
     private MoviesAdapter mMoviesAdapter;
@@ -93,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     private void fetchMovies(@NonNull String sortType, final boolean append) {
         mIsLoadingMovies = true;
         mLastSortedBy = sortType;
-        if(!append) {
+        if (!append) {
             mMoviesPageNumber = 0;
             mRecyclerView.setVisibility(View.INVISIBLE);
             mLoadingIndicator.setVisibility(View.VISIBLE);
@@ -104,10 +105,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
             @Override
             public void onResponse(Call<MovieAPIResponse> call, Response<MovieAPIResponse> response) {
                 mIsLoadingMovies = false;
+                mListLoadingIndicator.setVisibility(View.INVISIBLE);
                 if (response.isSuccessful() && response.body() != null) {
                     mMoviesAdapter.setMoviesData(response.body().getMovies(), append);
                     showContent();
-                    if(!append) {
+                    if (!append) {
                         mRecyclerView.smoothScrollToPosition(0);
                     }
                 } else {
@@ -119,7 +121,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
             @Override
             public void onFailure(Call<MovieAPIResponse> call, Throwable t) {
                 mIsLoadingMovies = false;
-                if(!append) {
+                mListLoadingIndicator.setVisibility(View.INVISIBLE);
+                if (!append) {
                     showErrorMessage();
                 } else {
                     Toast.makeText(MainActivity.this, "Error on fetching more movies.", Toast.LENGTH_SHORT).show();
@@ -140,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2, RecyclerView.VERTICAL, false);
 
         mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
+        mListLoadingIndicator = findViewById(R.id.pb_list_loading_indicator);
         mRecyclerView = findViewById(R.id.rv_movies_list);
         mRecyclerView.setLayoutManager(layoutManager);
         mMoviesAdapter = new MoviesAdapter(this);
@@ -150,7 +154,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if(!mRecyclerView.canScrollVertically(1) && !mIsLoadingMovies) {
+                if (!mRecyclerView.canScrollVertically(1) && !mIsLoadingMovies) {
+                    mListLoadingIndicator.setVisibility(View.VISIBLE);
                     fetchMovies(mLastSortedBy, true);
                 }
             }
