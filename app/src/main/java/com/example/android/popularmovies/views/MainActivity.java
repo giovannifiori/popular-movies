@@ -1,6 +1,7 @@
 package com.example.android.popularmovies.views;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.StringDef;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,9 +31,9 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.PosterClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final String MOVIE_EXTRA = "com.example.android.popularmovies_movie";
-    private static final String SORT_MOST_POPULAR = "popular";
-    private static final String SORT_TOP_RATED = "top_rated";
-    private String mLastSortedBy = null;
+
+    private @FetchMode
+    String mLastFetchBy = NONE;
     private ProgressBar mLoadingIndicator;
     private ProgressBar mListLoadingIndicator;
     private TextView mErrorMessageTextView;
@@ -41,6 +42,16 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     private IMovieService mMovieService;
     private boolean mIsLoadingMovies = false;
     private int mMoviesPageNumber = 0;
+
+    @StringDef({NONE, FETCH_MOST_POPULAR, FETCH_TOP_RATED, FETCH_FAVORITES})
+    private @interface FetchMode {
+    }
+
+    private static final String NONE = "";
+    private static final String FETCH_MOST_POPULAR = "popular";
+    private static final String FETCH_TOP_RATED = "top_rated";
+    private static final String FETCH_FAVORITES = "favorites";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
         initializeComponents();
 
-        fetchMovies(SORT_MOST_POPULAR, false);
+        fetchMovies(FETCH_MOST_POPULAR, false);
     }
 
     @Override
@@ -66,13 +77,18 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
         switch (selectedId) {
             case R.id.action_refresh:
-                fetchMovies(mLastSortedBy, false);
+                fetchMovies(mLastFetchBy, false);
                 break;
             case R.id.action_popularity:
-                fetchMovies(SORT_MOST_POPULAR, false);
+                fetchMovies(FETCH_MOST_POPULAR, false);
                 break;
             case R.id.action_top_rated:
-                fetchMovies(SORT_TOP_RATED, false);
+                fetchMovies(FETCH_TOP_RATED, false);
+                break;
+            case R.id.action_favorites:
+                //TODO implement method to get favorite movies from local database
+                break;
+            default:
                 break;
         }
 
@@ -91,9 +107,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
-    private void fetchMovies(@NonNull String sortType, final boolean append) {
+    private void fetchMovies(@FetchMode String sortType, final boolean append) {
         mIsLoadingMovies = true;
-        mLastSortedBy = sortType;
+        mLastFetchBy = sortType;
         if (!append) {
             mMoviesPageNumber = 0;
             mRecyclerView.setVisibility(View.INVISIBLE);
@@ -156,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
                 super.onScrolled(recyclerView, dx, dy);
                 if (!mRecyclerView.canScrollVertically(1) && !mIsLoadingMovies) {
                     mListLoadingIndicator.setVisibility(View.VISIBLE);
-                    fetchMovies(mLastSortedBy, true);
+                    fetchMovies(mLastFetchBy, true);
                 }
             }
         });
