@@ -2,6 +2,7 @@ package com.example.android.popularmovies.services;
 
 import com.example.android.popularmovies.services.responseModels.MovieAPIResponse;
 import com.example.android.popularmovies.services.responseModels.MovieReviewsResponse;
+import com.example.android.popularmovies.services.responseModels.MovieTrailersResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -34,5 +35,17 @@ public interface IMovieService {
             @Path("id") int movieId,
             @Query("api_key") String apiKey,
             @Query("page") int pageNumber
+    );
+
+    /**
+     * Calls the API endpoint to list the trailers of a movie
+     *
+     * @param movieId
+     * @param apiKey     TheMovieDB API key
+     */
+    @GET("/3/movie/{id}/trailers")
+    Call<MovieTrailersResponse> getMovieTrailers(
+            @Path("id") int movieId,
+            @Query("api_key") String apiKey
     );
 }
