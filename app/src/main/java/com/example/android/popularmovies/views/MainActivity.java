@@ -23,16 +23,28 @@ import com.example.android.popularmovies.events.MoviesResponseEvent;
 import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.viewmodels.MainViewModel;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.PosterClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final String MOVIE_EXTRA = "com.example.android.popularmovies_movie";
 
     private @FetchMode
     String mLastFetchBy = NONE;
-    private ProgressBar mLoadingIndicator;
-    private ProgressBar mListLoadingIndicator;
-    private TextView mErrorMessageTextView;
-    private RecyclerView mRecyclerView;
+
+    @BindView(R.id.pb_loading_indicator)
+    ProgressBar mLoadingIndicator;
+
+    @BindView(R.id.pb_list_loading_indicator)
+    ProgressBar mListLoadingIndicator;
+
+    @BindView(R.id.tv_error_message)
+    TextView mErrorMessageTextView;
+
+    @BindView(R.id.rv_movies_list)
+    RecyclerView mRecyclerView;
+
     private MoviesAdapter mMoviesAdapter;
     private boolean mIsLoadingMovies = false;
     private int mMoviesPageNumber = 1;
@@ -52,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
         initView();
         setupViewModel();
@@ -131,14 +144,10 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
     private void initView() {
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2, RecyclerView.VERTICAL, false);
-
-        mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
-        mListLoadingIndicator = findViewById(R.id.pb_list_loading_indicator);
-        mRecyclerView = findViewById(R.id.rv_movies_list);
         mRecyclerView.setLayoutManager(layoutManager);
+
         mMoviesAdapter = new MoviesAdapter(this);
         mRecyclerView.setAdapter(mMoviesAdapter);
-        mErrorMessageTextView = findViewById(R.id.tv_error_message);
 
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -161,12 +170,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     }
 
     private void subscribeDataObservers() {
-        mViewModel.getMovies().observe(this, new Observer<MoviesResponseEvent>() {
-            @Override
-            public void onChanged(MoviesResponseEvent event) {
-                handleMoviesResponse(event);
-            }
-        });
+        mViewModel.getMovies().observe(this, this::handleMoviesResponse);
     }
 
     private void handleMoviesResponse(MoviesResponseEvent event) {
