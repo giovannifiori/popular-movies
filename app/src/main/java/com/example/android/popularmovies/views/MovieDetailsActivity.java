@@ -10,8 +10,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.R;
+import com.example.android.popularmovies.events.MovieReviewsEvent;
 import com.example.android.popularmovies.events.MovieTrailersEvent;
 import com.example.android.popularmovies.models.Movie;
+import com.example.android.popularmovies.models.MovieReview;
 import com.example.android.popularmovies.services.ServiceUtils;
 import com.example.android.popularmovies.viewmodels.MovieDetailsViewModel;
 import com.squareup.picasso.Picasso;
@@ -42,6 +44,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
     @BindView(R.id.iv_poster)
     ImageView mPosterImageView;
 
+    private int mReviewsPageNumber = 1;
     private Movie mMovie = null;
     private MovieDetailsViewModel mViewModel;
 
@@ -71,6 +74,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     private void subscribeDataObservers() {
         mViewModel.getMovieTrailers().observe(this, this::handleMovieTrailersEvent);
+        mViewModel.getMovieReviews().observe(this, this::handleMovieReviewsEvent);
     }
 
     private void initView() {
@@ -110,7 +114,17 @@ public class MovieDetailsActivity extends AppCompatActivity {
         Log.d(TAG, "handleMovieTrailersEvent: " + event.getData());
     }
 
+    private void handleMovieReviewsEvent(MovieReviewsEvent event) {
+        if (event.getError() != null) {
+            Log.e(TAG, "handleMovieReviewsEvent: ", event.getError());
+            return;
+        }
+        mReviewsPageNumber += 1;
+        Log.d(TAG, "handleMovieReviewsEvent: " + event.getData());
+    }
+
     private void fetchMovieData() {
         mViewModel.fetchMovieTrailers(mMovie.getId());
+        mViewModel.fetchMovieReviews(mMovie.getId(), mReviewsPageNumber);
     }
 }

@@ -3,6 +3,7 @@ package com.example.android.popularmovies.viewmodels;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.android.popularmovies.events.MovieReviewsEvent;
 import com.example.android.popularmovies.events.MovieTrailersEvent;
 import com.example.android.popularmovies.repositories.MovieRepository;
 
@@ -12,11 +13,13 @@ import org.greenrobot.eventbus.Subscribe;
 public class MovieDetailsViewModel extends ViewModel {
 
     private MutableLiveData<MovieTrailersEvent> mMovieTrailersLiveData;
+    private MutableLiveData<MovieReviewsEvent> mMovieReviewsLiveData;
     private MovieRepository mMovieRepository;
     private EventBus mBus;
 
     public MovieDetailsViewModel() {
         mMovieTrailersLiveData = new MutableLiveData<>();
+        mMovieReviewsLiveData = new MutableLiveData<>();
         mMovieRepository = MovieRepository.getInstance();
         mBus = EventBus.getDefault();
         mBus.register(this);
@@ -29,13 +32,29 @@ public class MovieDetailsViewModel extends ViewModel {
         return mMovieTrailersLiveData;
     }
 
+    public MutableLiveData<MovieReviewsEvent> getMovieReviews() {
+        if (mMovieReviewsLiveData == null) {
+            mMovieReviewsLiveData = new MutableLiveData<>();
+        }
+        return mMovieReviewsLiveData;
+    }
+
     public void fetchMovieTrailers(int movieId) {
         mMovieRepository.getMovieTrailers(movieId);
+    }
+
+    public void fetchMovieReviews(int movieId, int pageNumber) {
+        mMovieRepository.getMovieReviews(movieId, pageNumber);
     }
 
     @Subscribe
     public void onEvent(MovieTrailersEvent event) {
         mMovieTrailersLiveData.postValue(event);
+    }
+
+    @Subscribe
+    public void onEvent(MovieReviewsEvent event) {
+        mMovieReviewsLiveData.postValue(event);
     }
 
     @Override

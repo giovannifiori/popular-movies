@@ -25,4 +25,14 @@ public class MovieReview {
     public String getUrl() {
         return url;
     }
+
+    @Override
+    public String toString() {
+        return "MovieReview{" +
+                "author='" + author + '\'' +
+                ", content='" + content + '\'' +
+                ", id='" + id + '\'' +
+                ", url='" + url + '\'' +
+                '}';
+    }
 }
