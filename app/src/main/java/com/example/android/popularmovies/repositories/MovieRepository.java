@@ -67,13 +67,13 @@ public class MovieRepository {
                         mBus.post(new MovieTrailersEvent(response.body().getTrailers()));
                     }
                 } else {
-                    mBus.post(new MoviesResponseEvent(new WebException(response.code())));
+                    mBus.post(new MovieTrailersEvent(new WebException(response.code())));
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<MovieTrailersResponse> call, @NonNull Throwable t) {
-                mBus.post(new MoviesResponseEvent(t));
+                mBus.post(new MovieTrailersEvent(t));
                 t.printStackTrace();
             }
         });
