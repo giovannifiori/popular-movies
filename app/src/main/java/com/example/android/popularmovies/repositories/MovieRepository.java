@@ -3,11 +3,13 @@ package com.example.android.popularmovies.repositories;
 import androidx.annotation.NonNull;
 
 import com.example.android.popularmovies.BuildConfig;
+import com.example.android.popularmovies.events.MovieTrailersEvent;
 import com.example.android.popularmovies.events.MoviesResponseEvent;
 import com.example.android.popularmovies.exceptions.WebException;
 import com.example.android.popularmovies.services.IMovieService;
 import com.example.android.popularmovies.services.ServiceUtils;
 import com.example.android.popularmovies.services.responseModels.MovieAPIResponse;
+import com.example.android.popularmovies.services.responseModels.MovieTrailersResponse;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -56,4 +58,24 @@ public class MovieRepository {
         });
     }
 
+    public void getMovieTrailers(int movieId) {
+        mMovieService.getMovieTrailers(movieId, BuildConfig.ApiKey).enqueue(new Callback<MovieTrailersResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<MovieTrailersResponse> call, @NonNull Response<MovieTrailersResponse> response) {
+                if (response.isSuccessful()) {
+                    if (response.body() != null) {
+                        mBus.post(new MovieTrailersEvent(response.body().getTrailers()));
+                    }
+                } else {
+                    mBus.post(new MoviesResponseEvent(new WebException(response.code())));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<MovieTrailersResponse> call, @NonNull Throwable t) {
+                mBus.post(new MoviesResponseEvent(t));
+                t.printStackTrace();
+            }
+        });
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.android.popularmovies.views;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,8 +10,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.R;
+import com.example.android.popularmovies.events.MovieTrailersEvent;
 import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.services.ServiceUtils;
+import com.example.android.popularmovies.viewmodels.MovieDetailsViewModel;
 import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
@@ -40,6 +43,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
     ImageView mPosterImageView;
 
     private Movie mMovie = null;
+    private MovieDetailsViewModel mViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,10 +56,24 @@ public class MovieDetailsActivity extends AppCompatActivity {
             mMovie = intent.getParcelableExtra(MainActivity.MOVIE_EXTRA);
         }
 
-        bindDataToComponents();
+        setupViewModel();
+        initView();
+        fetchMovieData();
     }
 
-    private void bindDataToComponents() {
+    private void setupViewModel() {
+        if (mViewModel == null) {
+            mViewModel = ViewModelProviders.of(this).get(MovieDetailsViewModel.class);
+        }
+
+        subscribeDataObservers();
+    }
+
+    private void subscribeDataObservers() {
+        mViewModel.getMovieTrailers().observe(this, this::handleMovieTrailersEvent);
+    }
+
+    private void initView() {
         if (mMovie == null) return;
 
         mTitleTextView.setText(mMovie.getTitle());
@@ -66,7 +84,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
         try {
             releaseDate = formatter.parse(mMovie.getReleaseDate());
         } catch (ParseException e) {
-            Log.d(TAG, "bindDataToComponents: error parsing");
+            Log.d(TAG, "initView: error parsing");
         }
 
         SimpleDateFormat newFormatter = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
@@ -82,5 +100,17 @@ public class MovieDetailsActivity extends AppCompatActivity {
         Picasso.get()
                 .load(ServiceUtils.buildPosterUrl(mMovie.getPosterPath()).toString())
                 .into(mPosterImageView);
+    }
+
+    private void handleMovieTrailersEvent(MovieTrailersEvent event) {
+        if (event.getError() != null) {
+            Log.e(TAG, "handleMovieTrailersEvent: ", event.getError());
+            return;
+        }
+        Log.d(TAG, "handleMovieTrailersEvent: " + event.getData());
+    }
+
+    private void fetchMovieData() {
+        mViewModel.fetchMovieTrailers(mMovie.getId());
     }
 }

@@ -30,4 +30,14 @@ public class MovieTrailer {
     public String getSourceFullUrl() {
         return YOUTUBE_BASE_URL + source;
     }
+
+    @Override
+    public String toString() {
+        return "MovieTrailer{" +
+                "name='" + name + '\'' +
+                ", source='" + source + '\'' +
+                ", type='" + type + '\'' +
+                ", size='" + size + '\'' +
+                '}';
+    }
 }
