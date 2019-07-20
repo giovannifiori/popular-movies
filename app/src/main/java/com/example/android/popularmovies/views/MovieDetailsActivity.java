@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -13,9 +14,9 @@ import com.example.android.popularmovies.R;
 import com.example.android.popularmovies.events.MovieReviewsEvent;
 import com.example.android.popularmovies.events.MovieTrailersEvent;
 import com.example.android.popularmovies.models.Movie;
-import com.example.android.popularmovies.models.MovieReview;
 import com.example.android.popularmovies.services.ServiceUtils;
 import com.example.android.popularmovies.viewmodels.MovieDetailsViewModel;
+import com.example.android.popularmovies.viewmodels.factory.MovieDetailsViewModelFactory;
 import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
@@ -25,6 +26,7 @@ import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MovieDetailsActivity extends AppCompatActivity {
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
@@ -66,7 +68,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     private void setupViewModel() {
         if (mViewModel == null) {
-            mViewModel = ViewModelProviders.of(this).get(MovieDetailsViewModel.class);
+            MovieDetailsViewModelFactory factory = new MovieDetailsViewModelFactory(getApplicationContext());
+            mViewModel = ViewModelProviders.of(this, factory).get(MovieDetailsViewModel.class);
         }
 
         subscribeDataObservers();
@@ -126,5 +129,11 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private void fetchMovieData() {
         mViewModel.fetchMovieTrailers(mMovie.getId());
         mViewModel.fetchMovieReviews(mMovie.getId(), mReviewsPageNumber);
+    }
+
+    @OnClick(R.id.button_add_to_favorites)
+    void onClick(View view) {
+        if(view.getId() != R.id.button_add_to_favorites) return;
+        mViewModel.addToFavorites(mMovie);
     }
 }

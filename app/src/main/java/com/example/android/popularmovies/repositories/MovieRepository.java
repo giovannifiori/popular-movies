@@ -1,12 +1,18 @@
 package com.example.android.popularmovies.repositories;
 
+import android.content.Context;
+import android.os.AsyncTask;
+
 import androidx.annotation.NonNull;
 
 import com.example.android.popularmovies.BuildConfig;
+import com.example.android.popularmovies.database.AppDatabase;
 import com.example.android.popularmovies.events.MovieReviewsEvent;
 import com.example.android.popularmovies.events.MovieTrailersEvent;
 import com.example.android.popularmovies.events.MoviesResponseEvent;
 import com.example.android.popularmovies.exceptions.WebException;
+import com.example.android.popularmovies.executors.DiskExecutor;
+import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.services.IMovieService;
 import com.example.android.popularmovies.services.ServiceUtils;
 import com.example.android.popularmovies.services.responseModels.MovieAPIResponse;
@@ -14,6 +20,11 @@ import com.example.android.popularmovies.services.responseModels.MovieReviewsRes
 import com.example.android.popularmovies.services.responseModels.MovieTrailersResponse;
 
 import org.greenrobot.eventbus.EventBus;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.crypto.spec.DESedeKeySpec;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -24,19 +35,19 @@ public class MovieRepository {
     private static IMovieService mMovieService;
     private static EventBus mBus;
     private static MovieRepository sInstance;
+    private static AppDatabase mDb;
 
-    public static MovieRepository getInstance() {
+    public static MovieRepository getInstance(Context context) {
         if (sInstance == null) {
-            sInstance = new MovieRepository();
+            sInstance = new MovieRepository(context);
         }
         return sInstance;
     }
 
-    private MovieRepository() {
-        if (mMovieService == null) {
-            mMovieService = ServiceUtils.getIMovieService();
-        }
+    private MovieRepository(Context context) {
+        mMovieService = ServiceUtils.getIMovieService();
         mBus = EventBus.getDefault();
+        mDb = AppDatabase.getInstance(context);
     }
 
     public void getMovies(String sortType, int pageNumber) {
@@ -98,6 +109,35 @@ public class MovieRepository {
             public void onFailure(@NonNull Call<MovieReviewsResponse> call, @NonNull Throwable t) {
                 mBus.post(new MovieReviewsEvent(t));
                 t.printStackTrace();
+            }
+        });
+    }
+
+    public void getFavoriteMovies() {
+        final List<Movie> favoriteMovies = new ArrayList<>();
+        DiskExecutor.getInstance().diskExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                favoriteMovies.addAll(mDb.movieDao().getFavoriteMovies());
+                mBus.post(new MoviesResponseEvent(favoriteMovies));
+            }
+        });
+    }
+
+    public void addToFavorites(Movie movie) {
+        DiskExecutor.getInstance().diskExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                mDb.movieDao().addNewFavorite(movie);
+            }
+        });
+    }
+
+    public void removeFromFavorites(Movie movie) {
+        DiskExecutor.getInstance().diskExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                mDb.movieDao().removeFromFavorites(movie);
             }
         });
     }

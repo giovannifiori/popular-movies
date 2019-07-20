@@ -1,5 +1,7 @@
 package com.example.android.popularmovies.viewmodels;
 
+import android.content.Context;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -15,9 +17,9 @@ public class MainViewModel extends ViewModel {
     private MovieRepository mMovieRepository;
     private EventBus mBus;
 
-    public MainViewModel() {
+    public MainViewModel(Context context) {
         mMoviesEventLiveData = new MutableLiveData<>();
-        mMovieRepository = MovieRepository.getInstance();
+        mMovieRepository = MovieRepository.getInstance(context);
         mBus = EventBus.getDefault();
         mBus.register(this);
     }
@@ -31,6 +33,10 @@ public class MainViewModel extends ViewModel {
 
     public void fetchMovies(String sortType, int pageNumber) {
         mMovieRepository.getMovies(sortType, pageNumber);
+    }
+
+    public void fetchFavoriteMovies() {
+        mMovieRepository.getFavoriteMovies();
     }
 
     @Subscribe

@@ -22,6 +22,7 @@ import com.example.android.popularmovies.adapters.MoviesAdapter;
 import com.example.android.popularmovies.events.MoviesResponseEvent;
 import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.viewmodels.MainViewModel;
+import com.example.android.popularmovies.viewmodels.factory.MainViewModelFactory;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -96,7 +97,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
                 fetchMovies(FETCH_TOP_RATED);
                 return true;
             case R.id.action_favorites:
-                //TODO implement method to get favorite movies from local database
+                resetPageCount();
+                fetchMovies(FETCH_FAVORITES);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -132,7 +134,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
             mErrorMessageTextView.setVisibility(View.INVISIBLE);
         }
 
-        mViewModel.fetchMovies(fetchMode, mMoviesPageNumber);
+        if(FETCH_FAVORITES.equals(fetchMode)) {
+            mViewModel.fetchFavoriteMovies();
+        } else {
+            mViewModel.fetchMovies(fetchMode, mMoviesPageNumber);
+        }
     }
 
     @Override
@@ -153,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if (!mRecyclerView.canScrollVertically(1) && !mIsLoadingMovies) {
+                if (!mRecyclerView.canScrollVertically(1) && !mIsLoadingMovies && !FETCH_FAVORITES.equals(mLastFetchBy)) {
                     mListLoadingIndicator.setVisibility(View.VISIBLE);
                     fetchMovies(mLastFetchBy);
                 }
@@ -163,7 +169,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
     private void setupViewModel() {
         if (mViewModel == null) {
-            mViewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+            MainViewModelFactory factory = new MainViewModelFactory(getApplicationContext());
+            mViewModel = ViewModelProviders.of(this, factory).get(MainViewModel.class);
         }
 
         subscribeDataObservers();

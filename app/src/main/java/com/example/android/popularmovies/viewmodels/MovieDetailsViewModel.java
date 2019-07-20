@@ -1,10 +1,13 @@
 package com.example.android.popularmovies.viewmodels;
 
+import android.content.Context;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.android.popularmovies.events.MovieReviewsEvent;
 import com.example.android.popularmovies.events.MovieTrailersEvent;
+import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.repositories.MovieRepository;
 
 import org.greenrobot.eventbus.EventBus;
@@ -17,10 +20,10 @@ public class MovieDetailsViewModel extends ViewModel {
     private MovieRepository mMovieRepository;
     private EventBus mBus;
 
-    public MovieDetailsViewModel() {
+    public MovieDetailsViewModel(Context context) {
         mMovieTrailersLiveData = new MutableLiveData<>();
         mMovieReviewsLiveData = new MutableLiveData<>();
-        mMovieRepository = MovieRepository.getInstance();
+        mMovieRepository = MovieRepository.getInstance(context);
         mBus = EventBus.getDefault();
         mBus.register(this);
     }
@@ -45,6 +48,14 @@ public class MovieDetailsViewModel extends ViewModel {
 
     public void fetchMovieReviews(int movieId, int pageNumber) {
         mMovieRepository.getMovieReviews(movieId, pageNumber);
+    }
+
+    public void addToFavorites(Movie movie) {
+        mMovieRepository.addToFavorites(movie);
+    }
+
+    public void removeFromFavorites(Movie movie) {
+        mMovieRepository.removeFromFavorites(movie);
     }
 
     @Subscribe
