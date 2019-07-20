@@ -3,91 +3,96 @@ package com.example.android.popularmovies.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.SerializedName;
 
+@Entity(tableName = "favorite_movie")
 public class Movie implements Parcelable {
-    @SerializedName("id")
-    private int mId;
+    @PrimaryKey
+    private int id;
 
-    @SerializedName("title")
-    private String mTitle;
+    private String title;
 
+    @ColumnInfo(name = "poster_path")
     @SerializedName("poster_path")
-    private String mPosterPath;
+    private String posterPath;
 
+    @ColumnInfo(name = "synopsis")
     @SerializedName("overview")
-    private String mSynopsis;
+    private String synopsis;
 
+    @ColumnInfo(name = "release_date")
     @SerializedName("release_date")
-    private String mReleaseDate;
+    private String releaseDate;
 
+    @ColumnInfo(name = "vote_average")
     @SerializedName("vote_average")
-    private float mVoteAverage;
+    private float voteAverage;
 
-    @SerializedName("popularity")
-    private float mPopularity;
+    private float popularity;
 
-    public Movie() {
-    }
-
-    public Movie(int mId, String mTitle, String mPosterPath, String mSynopsis, String mReleaseDate, float mVoteAverage, float mPopularity) {
-        this.mId = mId;
-        this.mTitle = mTitle;
-        this.mPosterPath = mPosterPath;
-        this.mSynopsis = mSynopsis;
-        this.mReleaseDate = mReleaseDate;
-        this.mVoteAverage = mVoteAverage;
-        this.mPopularity = mPopularity;
+    public Movie(int id, String title, String posterPath, String synopsis, String releaseDate,
+                 float voteAverage, float popularity) {
+        this.id = id;
+        this.title = title;
+        this.posterPath = posterPath;
+        this.synopsis = synopsis;
+        this.releaseDate = releaseDate;
+        this.voteAverage = voteAverage;
+        this.popularity = popularity;
     }
 
     public Movie(Parcel parcel) {
-        mId = parcel.readInt();
-        mTitle = parcel.readString();
-        mPosterPath = parcel.readString();
-        mSynopsis = parcel.readString();
-        mReleaseDate = parcel.readString();
-        mVoteAverage = parcel.readFloat();
-        mPopularity = parcel.readFloat();
+        id = parcel.readInt();
+        title = parcel.readString();
+        posterPath = parcel.readString();
+        synopsis = parcel.readString();
+        releaseDate = parcel.readString();
+        voteAverage = parcel.readFloat();
+        popularity = parcel.readFloat();
     }
 
     public int getId() {
-        return mId;
+        return id;
     }
 
     public String getTitle() {
-        return mTitle;
+        return title;
     }
 
     public String getPosterPath() {
-        return mPosterPath;
+        return posterPath;
     }
 
     public String getSynopsis() {
-        return mSynopsis;
+        return synopsis;
     }
 
     public String getReleaseDate() {
-        return mReleaseDate;
+        return releaseDate;
     }
 
     public float getVoteAverage() {
-        return mVoteAverage;
+        return voteAverage;
     }
 
     public float getPopularity() {
-        return mPopularity;
+        return popularity;
     }
 
     @Override
     public String toString() {
         return "Movie{" +
-                "mId=" + mId +
-                ", mTitle='" + mTitle + '\'' +
-                ", mPosterPath='" + mPosterPath + '\'' +
-                ", mSynopsis='" + mSynopsis + '\'' +
-                ", mReleaseDate=" + mReleaseDate +
-                ", mVoteAverage=" + mVoteAverage +
-                ", mPopularity=" + mPopularity +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", posterPath='" + posterPath + '\'' +
+                ", synopsis='" + synopsis + '\'' +
+                ", releaseDate=" + releaseDate +
+                ", voteAverage=" + voteAverage +
+                ", popularity=" + popularity +
                 '}';
     }
 
@@ -98,13 +103,13 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(mId);
-        dest.writeString(mTitle);
-        dest.writeString(mPosterPath);
-        dest.writeString(mSynopsis);
-        dest.writeString(mReleaseDate);
-        dest.writeFloat(mVoteAverage);
-        dest.writeFloat(mPopularity);
+        dest.writeInt(id);
+        dest.writeString(title);
+        dest.writeString(posterPath);
+        dest.writeString(synopsis);
+        dest.writeString(releaseDate);
+        dest.writeFloat(voteAverage);
+        dest.writeFloat(popularity);
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
