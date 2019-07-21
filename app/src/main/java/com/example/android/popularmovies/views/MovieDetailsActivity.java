@@ -140,15 +140,24 @@ public class MovieDetailsActivity extends AppCompatActivity
 
         Picasso.get()
                 .load(ServiceUtils.buildPosterUrl(mMovie.getPosterPath()).toString())
+                .placeholder(R.drawable.output)
+                .error(R.drawable.output)
                 .into(mPosterImageView);
 
+        initTrailersView();
+        initReviewsView();
+    }
+
+    private void initTrailersView() {
         LinearLayoutManager trailersLayoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
         mTrailersRecyclerView.setLayoutManager(trailersLayoutManager);
 
         mTrailersAdapter = new MovieTrailersAdapter(this);
         mTrailersRecyclerView.setAdapter(mTrailersAdapter);
         mTrailersRecyclerView.setNestedScrollingEnabled(false);
+    }
 
+    private void initReviewsView() {
         LinearLayoutManager reviewsLayoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
         mReviewsRecyclerView.setLayoutManager(reviewsLayoutManager);
 
