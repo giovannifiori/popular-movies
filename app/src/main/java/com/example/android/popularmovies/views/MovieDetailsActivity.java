@@ -1,7 +1,9 @@
 package com.example.android.popularmovies.views;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,6 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.R;
+import com.example.android.popularmovies.adapters.MovieReviewsAdapter;
 import com.example.android.popularmovies.adapters.MovieTrailersAdapter;
 import com.example.android.popularmovies.events.MovieReviewsEvent;
 import com.example.android.popularmovies.events.MovieTrailersEvent;
@@ -35,7 +38,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MovieDetailsActivity extends AppCompatActivity implements MovieTrailersAdapter.TrailerOnClickListener {
+public class MovieDetailsActivity extends AppCompatActivity
+        implements MovieTrailersAdapter.TrailerOnClickListener {
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
 
     @BindView(R.id.tv_title)
@@ -62,10 +66,21 @@ public class MovieDetailsActivity extends AppCompatActivity implements MovieTrai
     @BindView(R.id.pb_trailers_loading_indicator)
     ProgressBar mTrailersLoadingIndicator;
 
+    @BindView(R.id.rv_reviews)
+    RecyclerView mReviewsRecyclerView;
+
+    @BindView(R.id.pb_reviews_loading_indicator)
+    ProgressBar mReviewsLoadingIndicator;
+
+    @BindView(R.id.tv_reviews_error)
+    TextView mReviewsErrorTextView;
+
     private MovieTrailersAdapter mTrailersAdapter;
+    private MovieReviewsAdapter mReviewsAdapter;
 
     private int mReviewsPageNumber = 1;
     private boolean isFavorite;
+    private boolean mIsLoadingReviews = false;
     private Movie mMovie = null;
     private MovieDetailsViewModel mViewModel;
 
@@ -127,12 +142,31 @@ public class MovieDetailsActivity extends AppCompatActivity implements MovieTrai
                 .load(ServiceUtils.buildPosterUrl(mMovie.getPosterPath()).toString())
                 .into(mPosterImageView);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
-        mTrailersRecyclerView.setLayoutManager(layoutManager);
+        LinearLayoutManager trailersLayoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
+        mTrailersRecyclerView.setLayoutManager(trailersLayoutManager);
 
         mTrailersAdapter = new MovieTrailersAdapter(this);
         mTrailersRecyclerView.setAdapter(mTrailersAdapter);
         mTrailersRecyclerView.setNestedScrollingEnabled(false);
+
+        LinearLayoutManager reviewsLayoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
+        mReviewsRecyclerView.setLayoutManager(reviewsLayoutManager);
+
+        mReviewsAdapter = new MovieReviewsAdapter();
+        mReviewsRecyclerView.setAdapter(mReviewsAdapter);
+        mReviewsRecyclerView.setNestedScrollingEnabled(true);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mReviewsRecyclerView.getContext(),
+                reviewsLayoutManager.getOrientation());
+        mReviewsRecyclerView.addItemDecoration(dividerItemDecoration);
+        mReviewsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (!mReviewsRecyclerView.canScrollVertically(1) && !mIsLoadingReviews) {
+                    mViewModel.fetchMovieReviews(mMovie.getId(), mReviewsPageNumber);
+                    mIsLoadingReviews = true;
+                }
+            }
+        });
     }
 
     private void handleMovieTrailersEvent(MovieTrailersEvent event) {
@@ -146,14 +180,42 @@ public class MovieDetailsActivity extends AppCompatActivity implements MovieTrai
     }
 
     private void handleMovieReviewsEvent(MovieReviewsEvent event) {
+        mIsLoadingReviews = false;
         if (event.getError() != null) {
             Log.e(TAG, "handleMovieReviewsEvent: ", event.getError());
+            showNoReviewsMessage();
             return;
         }
+
+        if (mReviewsRecyclerView.getVisibility() != View.VISIBLE) {
+            mReviewsRecyclerView.setVisibility(View.VISIBLE);
+        }
+
+        mReviewsAdapter.setReviews(event.getData());
+
+        if (mReviewsAdapter.getItemCount() == 0) {
+            showNoReviewsMessage();
+            return;
+        }
+
+        showReviews();
         mReviewsPageNumber += 1;
     }
 
+    private void showNoReviewsMessage() {
+        mReviewsLoadingIndicator.setVisibility(View.GONE);
+        mReviewsRecyclerView.setVisibility(View.GONE);
+        mReviewsErrorTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void showReviews() {
+        mReviewsLoadingIndicator.setVisibility(View.GONE);
+        mReviewsRecyclerView.setVisibility(View.VISIBLE);
+        mReviewsErrorTextView.setVisibility(View.GONE);
+    }
+
     private void fetchMovieData() {
+        mIsLoadingReviews = true;
         mViewModel.fetchMovieTrailers(mMovie.getId());
         mViewModel.fetchMovieReviews(mMovie.getId(), mReviewsPageNumber);
         mViewModel.getMovieById(mMovie.getId()).observe(this, this::handleLocalMovieResponse);

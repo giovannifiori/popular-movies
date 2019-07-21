@@ -113,6 +113,7 @@
             app:layout_constraintTop_toBottomOf="@+id/tv_synopsis" />
 
         <FrameLayout
+            android:id="@+id/fl_trailers_wrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -138,10 +139,64 @@
 
             <ProgressBar
                 android:id="@+id/pb_trailers_loading_indicator"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                style="@style/progressBarStyle"
+                android:visibility="visible" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tv_reviews_header"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            android:text="@string/reviews"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/fl_trailers_wrapper" />
+
+        <FrameLayout
+            android:id="@+id/fl_reviews_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_bordered"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_reviews_header">
+
+            <TextView
+                android:id="@+id/tv_reviews_error"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_margin="16dp"
+                android:padding="16dp"
+                android:text="@string/no_reviews"
+                android:textSize="16sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_reviews"
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_trailers_header"
+                tools:itemCount="4"
+                tools:listitem="@layout/movie_review_list_item"
+                tools:visibility="visible" />
+
+            <ProgressBar
+                android:id="@+id/pb_reviews_loading_indicator"
+                style="@style/progressBarStyle"
                 android:visibility="visible" />
         </FrameLayout>
 
