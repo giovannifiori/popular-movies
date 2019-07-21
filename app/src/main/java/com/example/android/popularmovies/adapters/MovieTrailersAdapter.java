@@ -18,7 +18,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MovieTrailersAdapter extends RecyclerView.Adapter<MovieTrailersAdapter.MoviesAdapterViewHolder> {
+public class MovieTrailersAdapter extends RecyclerView.Adapter<MovieTrailersAdapter.MovieTrailerViewHolder> {
     private List<MovieTrailer> mTrailers;
     private final TrailerOnClickListener mClickListener;
 
@@ -40,11 +40,11 @@ public class MovieTrailersAdapter extends RecyclerView.Adapter<MovieTrailersAdap
         mTrailers = new ArrayList<>();
     }
 
-    class MoviesAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class MovieTrailerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         @BindView(R.id.tv_trailer_title)
         TextView mMovieTrailerTitle;
 
-        MoviesAdapterViewHolder(View view) {
+        MovieTrailerViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
             view.setOnClickListener(this);
@@ -59,16 +59,16 @@ public class MovieTrailersAdapter extends RecyclerView.Adapter<MovieTrailersAdap
 
     @NonNull
     @Override
-    public MoviesAdapterViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public MovieTrailerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
         View view = inflater.inflate(R.layout.movie_trailer_list_item, parent, false);
-        return new MoviesAdapterViewHolder(view);
+        return new MovieTrailerViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MoviesAdapterViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull MovieTrailerViewHolder holder, int position) {
         MovieTrailer trailer = mTrailers.get(position);
         String title = trailer.getType() + " - " + trailer.getName();
         holder.mMovieTrailerTitle.setText(title);
