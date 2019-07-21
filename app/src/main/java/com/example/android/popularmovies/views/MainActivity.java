@@ -2,8 +2,8 @@ package com.example.android.popularmovies.views;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringDef;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,6 +23,8 @@ import com.example.android.popularmovies.events.MoviesResponseEvent;
 import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.viewmodels.MainViewModel;
 import com.example.android.popularmovies.viewmodels.factory.MainViewModelFactory;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -97,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
                 fetchMovies(FETCH_TOP_RATED);
                 return true;
             case R.id.action_favorites:
+                mViewModel.getFavoriteMovies().removeObservers(this);
                 resetPageCount();
                 fetchMovies(FETCH_FAVORITES);
                 return true;
@@ -113,10 +116,17 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         mMoviesPageNumber = 1;
     }
 
-    private void showErrorMessage() {
+    private void showErrorMessage(@StringRes int errorString) {
         mRecyclerView.setVisibility(View.INVISIBLE);
         mLoadingIndicator.setVisibility(View.INVISIBLE);
         mErrorMessageTextView.setVisibility(View.VISIBLE);
+        mErrorMessageTextView.setText(errorString);
+    }
+
+    private void showLoadingIndicator() {
+        mRecyclerView.setVisibility(View.INVISIBLE);
+        mLoadingIndicator.setVisibility(View.VISIBLE);
+        mErrorMessageTextView.setVisibility(View.INVISIBLE);
     }
 
     private void showContent() {
@@ -129,13 +139,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         mIsLoadingMovies = true;
         mLastFetchBy = fetchMode;
         if (isFirstPage()) {
-            mRecyclerView.setVisibility(View.INVISIBLE);
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-            mErrorMessageTextView.setVisibility(View.INVISIBLE);
+            showLoadingIndicator();
         }
 
-        if(FETCH_FAVORITES.equals(fetchMode)) {
-            mViewModel.fetchFavoriteMovies();
+        if (FETCH_FAVORITES.equals(fetchMode)) {
+            mViewModel.getFavoriteMovies().observe(this, this::handleFavoriteMoviesResponse);
         } else {
             mViewModel.fetchMovies(fetchMode, mMoviesPageNumber);
         }
@@ -186,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
         if (event.getError() != null) {
             if (isFirstPage())
-                showErrorMessage();
+                showErrorMessage(R.string.error_message);
             else
                 Toast.makeText(MainActivity.this, "Error on fetching more movies.", Toast.LENGTH_LONG).show();
             return;
@@ -201,5 +209,26 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
             mRecyclerView.smoothScrollToPosition(0);
         }
         mMoviesPageNumber += 1;
+    }
+
+    private void handleFavoriteMoviesResponse(List<Movie> movies) {
+        if (!FETCH_FAVORITES.equals(mLastFetchBy))
+            return;
+
+        mIsLoadingMovies = false;
+
+        if (movies == null) {
+            showErrorMessage(R.string.error_message);
+            return;
+        }
+
+        if(movies.isEmpty()) {
+            showErrorMessage(R.string.empty_favorites_list);
+            return;
+        }
+
+        mMoviesAdapter.setMovies(movies);
+        mRecyclerView.smoothScrollToPosition(0);
+        showContent();
     }
 }

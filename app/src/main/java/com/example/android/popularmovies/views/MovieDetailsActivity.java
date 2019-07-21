@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -46,7 +47,11 @@ public class MovieDetailsActivity extends AppCompatActivity {
     @BindView(R.id.iv_poster)
     ImageView mPosterImageView;
 
+    @BindView(R.id.button_add_to_favorites)
+    Button mToggleFavoriteButton;
+
     private int mReviewsPageNumber = 1;
+    private boolean isFavorite;
     private Movie mMovie = null;
     private MovieDetailsViewModel mViewModel;
 
@@ -114,7 +119,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
             Log.e(TAG, "handleMovieTrailersEvent: ", event.getError());
             return;
         }
-        Log.d(TAG, "handleMovieTrailersEvent: " + event.getData());
     }
 
     private void handleMovieReviewsEvent(MovieReviewsEvent event) {
@@ -123,17 +127,29 @@ public class MovieDetailsActivity extends AppCompatActivity {
             return;
         }
         mReviewsPageNumber += 1;
-        Log.d(TAG, "handleMovieReviewsEvent: " + event.getData());
     }
 
     private void fetchMovieData() {
         mViewModel.fetchMovieTrailers(mMovie.getId());
         mViewModel.fetchMovieReviews(mMovie.getId(), mReviewsPageNumber);
+        mViewModel.getMovieById(mMovie.getId()).observe(this, this::handleLocalMovieResponse);
+    }
+
+    private void handleLocalMovieResponse(Movie movie) {
+        isFavorite = movie != null;
+        if(isFavorite) {
+            mToggleFavoriteButton.setText(R.string.remove_from_favorites);
+        } else {
+            mToggleFavoriteButton.setText(R.string.add_to_favorites);
+        }
     }
 
     @OnClick(R.id.button_add_to_favorites)
     void onClick(View view) {
-        if(view.getId() != R.id.button_add_to_favorites) return;
-        mViewModel.addToFavorites(mMovie);
+        if(isFavorite) {
+            mViewModel.removeFromFavorites(mMovie);
+        } else {
+            mViewModel.addToFavorites(mMovie);
+        }
     }
 }

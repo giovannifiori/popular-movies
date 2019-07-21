@@ -2,6 +2,7 @@ package com.example.android.popularmovies.viewmodels;
 
 import android.content.Context;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -17,6 +18,7 @@ public class MovieDetailsViewModel extends ViewModel {
 
     private MutableLiveData<MovieTrailersEvent> mMovieTrailersLiveData;
     private MutableLiveData<MovieReviewsEvent> mMovieReviewsLiveData;
+    private LiveData<Movie> mLocalStoredMovieLiveData;
     private MovieRepository mMovieRepository;
     private EventBus mBus;
 
@@ -26,6 +28,13 @@ public class MovieDetailsViewModel extends ViewModel {
         mMovieRepository = MovieRepository.getInstance(context);
         mBus = EventBus.getDefault();
         mBus.register(this);
+    }
+
+    public LiveData<Movie> getMovieById(int movieId) {
+        if(mLocalStoredMovieLiveData == null) {
+            mLocalStoredMovieLiveData = mMovieRepository.getFavoriteMovieById(movieId);
+        }
+        return mLocalStoredMovieLiveData;
     }
 
     public MutableLiveData<MovieTrailersEvent> getMovieTrailers() {

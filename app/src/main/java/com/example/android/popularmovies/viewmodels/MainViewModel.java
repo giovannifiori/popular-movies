@@ -2,18 +2,23 @@ package com.example.android.popularmovies.viewmodels;
 
 import android.content.Context;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.android.popularmovies.events.MoviesResponseEvent;
+import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.repositories.MovieRepository;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.util.List;
+
 public class MainViewModel extends ViewModel {
 
     private MutableLiveData<MoviesResponseEvent> mMoviesEventLiveData;
+    private LiveData<List<Movie>> mFavoriteMoviesLiveData;
     private MovieRepository mMovieRepository;
     private EventBus mBus;
 
@@ -35,8 +40,11 @@ public class MainViewModel extends ViewModel {
         mMovieRepository.getMovies(sortType, pageNumber);
     }
 
-    public void fetchFavoriteMovies() {
-        mMovieRepository.getFavoriteMovies();
+    public LiveData<List<Movie>> getFavoriteMovies() {
+        if(mFavoriteMoviesLiveData == null) {
+            mFavoriteMoviesLiveData = mMovieRepository.getFavoriteMovies();
+        }
+        return mFavoriteMoviesLiveData;
     }
 
     @Subscribe

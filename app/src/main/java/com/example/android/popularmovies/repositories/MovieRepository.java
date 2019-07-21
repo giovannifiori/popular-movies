@@ -1,9 +1,9 @@
 package com.example.android.popularmovies.repositories;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
 
 import com.example.android.popularmovies.BuildConfig;
 import com.example.android.popularmovies.database.AppDatabase;
@@ -21,10 +21,7 @@ import com.example.android.popularmovies.services.responseModels.MovieTrailersRe
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import javax.crypto.spec.DESedeKeySpec;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -113,15 +110,12 @@ public class MovieRepository {
         });
     }
 
-    public void getFavoriteMovies() {
-        final List<Movie> favoriteMovies = new ArrayList<>();
-        DiskExecutor.getInstance().diskExecutor().execute(new Runnable() {
-            @Override
-            public void run() {
-                favoriteMovies.addAll(mDb.movieDao().getFavoriteMovies());
-                mBus.post(new MoviesResponseEvent(favoriteMovies));
-            }
-        });
+    public LiveData<Movie> getFavoriteMovieById(int movieId) {
+        return mDb.movieDao().getFavoriteMovie(movieId);
+    }
+
+    public LiveData<List<Movie>> getFavoriteMovies() {
+        return mDb.movieDao().getFavoriteMovies();
     }
 
     public void addToFavorites(Movie movie) {
