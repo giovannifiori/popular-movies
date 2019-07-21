@@ -2,19 +2,25 @@ package com.example.android.popularmovies.views;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.R;
+import com.example.android.popularmovies.adapters.MovieTrailersAdapter;
 import com.example.android.popularmovies.events.MovieReviewsEvent;
 import com.example.android.popularmovies.events.MovieTrailersEvent;
 import com.example.android.popularmovies.models.Movie;
+import com.example.android.popularmovies.models.MovieTrailer;
 import com.example.android.popularmovies.services.ServiceUtils;
 import com.example.android.popularmovies.viewmodels.MovieDetailsViewModel;
 import com.example.android.popularmovies.viewmodels.factory.MovieDetailsViewModelFactory;
@@ -29,7 +35,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MovieDetailsActivity extends AppCompatActivity {
+public class MovieDetailsActivity extends AppCompatActivity implements MovieTrailersAdapter.TrailerOnClickListener {
     private static final String TAG = MovieDetailsActivity.class.getSimpleName();
 
     @BindView(R.id.tv_title)
@@ -49,6 +55,14 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     @BindView(R.id.button_add_to_favorites)
     Button mToggleFavoriteButton;
+
+    @BindView(R.id.rv_trailers)
+    RecyclerView mTrailersRecyclerView;
+
+    @BindView(R.id.pb_trailers_loading_indicator)
+    ProgressBar mTrailersLoadingIndicator;
+
+    private MovieTrailersAdapter mTrailersAdapter;
 
     private int mReviewsPageNumber = 1;
     private boolean isFavorite;
@@ -112,13 +126,23 @@ public class MovieDetailsActivity extends AppCompatActivity {
         Picasso.get()
                 .load(ServiceUtils.buildPosterUrl(mMovie.getPosterPath()).toString())
                 .into(mPosterImageView);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
+        mTrailersRecyclerView.setLayoutManager(layoutManager);
+
+        mTrailersAdapter = new MovieTrailersAdapter(this);
+        mTrailersRecyclerView.setAdapter(mTrailersAdapter);
+        mTrailersRecyclerView.setNestedScrollingEnabled(false);
     }
 
     private void handleMovieTrailersEvent(MovieTrailersEvent event) {
+        mTrailersLoadingIndicator.setVisibility(View.GONE);
         if (event.getError() != null) {
             Log.e(TAG, "handleMovieTrailersEvent: ", event.getError());
             return;
         }
+        mTrailersAdapter.setTrailers(event.getData());
+        mTrailersRecyclerView.setVisibility(View.VISIBLE);
     }
 
     private void handleMovieReviewsEvent(MovieReviewsEvent event) {
@@ -137,7 +161,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     private void handleLocalMovieResponse(Movie movie) {
         isFavorite = movie != null;
-        if(isFavorite) {
+        if (isFavorite) {
             mToggleFavoriteButton.setText(R.string.remove_from_favorites);
         } else {
             mToggleFavoriteButton.setText(R.string.add_to_favorites);
@@ -146,10 +170,19 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     @OnClick(R.id.button_add_to_favorites)
     void onClick(View view) {
-        if(isFavorite) {
+        if (isFavorite) {
             mViewModel.removeFromFavorites(mMovie);
         } else {
             mViewModel.addToFavorites(mMovie);
         }
+    }
+
+    @Override
+    public void onClick(MovieTrailer trailer) {
+        Intent watchTrailerIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(trailer.getSourceToApp()));
+        if (watchTrailerIntent.resolveActivity(getPackageManager()) == null) {
+            watchTrailerIntent.setData(Uri.parse(trailer.getSourceFullUrl()));
+        }
+        startActivity(watchTrailerIntent);
     }
 }

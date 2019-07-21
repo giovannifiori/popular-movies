@@ -31,6 +31,10 @@ public class MovieTrailer {
         return YOUTUBE_BASE_URL + source;
     }
 
+    public String getSourceToApp() {
+        return "vnd.youtube:" + source;
+    }
+
     @Override
     public String toString() {
         return "MovieTrailer{" +

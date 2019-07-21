@@ -16,4 +16,5 @@
     <string name="add_to_favorites">Add to favorites</string>
     <string name="remove_from_favorites">Remove from favorites</string>
     <string name="empty_favorites_list">You don\'t have favorite movies.</string>
+    <string name="trailers">Trailers</string>
 </resources>
