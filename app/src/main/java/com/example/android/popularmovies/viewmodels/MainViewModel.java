@@ -13,27 +13,28 @@ import com.example.android.popularmovies.repositories.MovieRepository;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainViewModel extends ViewModel {
 
-    private MutableLiveData<MoviesResponseEvent> mMoviesEventLiveData;
+    private MutableLiveData<List<Movie>> mMovies;
     private LiveData<List<Movie>> mFavoriteMoviesLiveData;
     private MovieRepository mMovieRepository;
     private EventBus mBus;
 
     public MainViewModel(Context context) {
-        mMoviesEventLiveData = new MutableLiveData<>();
+        mMovies = new MutableLiveData<>();
         mMovieRepository = MovieRepository.getInstance(context);
         mBus = EventBus.getDefault();
         mBus.register(this);
     }
 
-    public MutableLiveData<MoviesResponseEvent> getMovies() {
-        if (mMoviesEventLiveData == null) {
-            mMoviesEventLiveData = new MutableLiveData<>();
+    public MutableLiveData<List<Movie>> getMovies() {
+        if (mMovies == null) {
+            mMovies = new MutableLiveData<>();
         }
-        return mMoviesEventLiveData;
+        return mMovies;
     }
 
     public void fetchMovies(String sortType, int pageNumber) {
@@ -49,7 +50,15 @@ public class MainViewModel extends ViewModel {
 
     @Subscribe
     public void onEvent(MoviesResponseEvent event) {
-        mMoviesEventLiveData.postValue(event);
+        List<Movie> newList = new ArrayList<>();
+
+        if(mMovies.getValue() != null && !event.isNewData()){
+            newList.addAll(mMovies.getValue());
+        }
+
+        newList.addAll(event.getData());
+
+        mMovies.postValue(newList);
     }
 
     @Override

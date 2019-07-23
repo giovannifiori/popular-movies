@@ -20,12 +20,10 @@ import android.widget.Toast;
 
 import com.example.android.popularmovies.R;
 import com.example.android.popularmovies.adapters.MoviesAdapter;
-import com.example.android.popularmovies.events.MoviesResponseEvent;
 import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.viewmodels.MainViewModel;
 import com.example.android.popularmovies.viewmodels.factory.MainViewModelFactory;
 
-import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -35,7 +33,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String LAST_FETCH_BUNDLE_KEY = "last-fetch-mode";
     private static final String LAST_PAGE_BUNDLE_KEY = "last-fetch-page";
-    private static final String MOVIES_BUNDLE_KEY = "movies-bundle";
     private static final String LAYOUT_MANAGER_STATE_BUNDLE_KEY = "layout-manager-state";
     public static final String MOVIE_EXTRA = "com.example.android.popularmovies_movie";
 
@@ -75,14 +72,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         outState.putString(LAST_FETCH_BUNDLE_KEY, mLastFetchBy);
         outState.putInt(LAST_PAGE_BUNDLE_KEY, mMoviesPageNumber);
 
-        outState.remove(MOVIES_BUNDLE_KEY);
-        Movie[] movieArr = new Movie[mMoviesAdapter.getItemCount()];
-        outState.putParcelableArray(MOVIES_BUNDLE_KEY, mMoviesAdapter.getMovies().toArray(movieArr));
-
         if (mRecyclerView.getLayoutManager() != null) {
             outState.putParcelable(LAYOUT_MANAGER_STATE_BUNDLE_KEY, mRecyclerView.getLayoutManager().onSaveInstanceState());
         }
-
         super.onSaveInstanceState(outState);
     }
 
@@ -92,23 +84,21 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        mIsActivityRecreated = savedInstanceState != null;
+        if (savedInstanceState != null) {
+            mLastFetchBy = savedInstanceState.getString(LAST_FETCH_BUNDLE_KEY, FETCH_MOST_POPULAR);
+            mMoviesPageNumber = savedInstanceState.getInt(LAST_PAGE_BUNDLE_KEY, 1);
+        }
+
         initView();
         setupViewModel();
 
         if (savedInstanceState != null) {
-            mIsActivityRecreated = true;
-            mLastFetchBy = savedInstanceState.getString(LAST_FETCH_BUNDLE_KEY, FETCH_MOST_POPULAR);
-            mMoviesPageNumber = savedInstanceState.getInt(LAST_PAGE_BUNDLE_KEY, 1);
-
-            Movie[] movieArr = (Movie[]) savedInstanceState.getParcelableArray(MOVIES_BUNDLE_KEY);
-            mMoviesAdapter.setMovies(Arrays.asList(movieArr));
-
             Parcelable savedRecyclerLayoutState = savedInstanceState.getParcelable(LAYOUT_MANAGER_STATE_BUNDLE_KEY);
             if (mRecyclerView.getLayoutManager() != null) {
                 mRecyclerView.getLayoutManager().onRestoreInstanceState(savedRecyclerLayoutState);
             }
         } else {
-            mIsActivityRecreated = false;
             fetchMovies(mLastFetchBy);
         }
     }
@@ -218,6 +208,17 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         if (mViewModel == null) {
             MainViewModelFactory factory = new MainViewModelFactory(getApplicationContext());
             mViewModel = ViewModelProviders.of(this, factory).get(MainViewModel.class);
+
+            if (FETCH_FAVORITES.equals(mLastFetchBy)) {
+                if (mViewModel.getFavoriteMovies().getValue() != null) {
+                    mMoviesAdapter.setMovies(mViewModel.getFavoriteMovies().getValue());
+                }
+            } else {
+                if (mViewModel.getMovies().getValue() != null) {
+                    mMoviesAdapter.setMovies(mViewModel.getMovies().getValue());
+                }
+            }
+
             subscribeDataObservers();
         }
     }
@@ -228,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         }
     }
 
-    private void handleMoviesResponse(MoviesResponseEvent event) {
+    private void handleMoviesResponse(List<Movie> movies) {
         mIsLoadingMovies = false;
         mListLoadingIndicator.setVisibility(View.INVISIBLE);
 
@@ -237,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
             return;
         }
 
-        if (event.getError() != null) {
+        if (movies == null) {
             if (isFirstPage())
                 showErrorMessage(R.string.error_message);
             else
@@ -245,14 +246,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
             return;
         }
 
-        if (isFirstPage())
-            mMoviesAdapter.setMovies(event.getData());
-        else
-            mMoviesAdapter.appendMovies(event.getData());
+        mMoviesAdapter.setMovies(movies);
         showContent();
+
         if (isFirstPage()) {
             mRecyclerView.smoothScrollToPosition(0);
         }
+
         mMoviesPageNumber += 1;
     }
 
