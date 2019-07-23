@@ -2,10 +2,21 @@
     <string name="app_name">PopularMovies</string>
     <string name="sort_by_popularity">Most popular</string>
     <string name="sort_by_rating">Top rated</string>
+    <string name="favorites">Favorites</string>
+
+    <string name="error_message">An error has ocurred. Please try again.</string>
+    <string name="refresh">Refresh</string>
+
+    <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus faucibus tellus faucibus tempor aliquam. Aliquam erat volutpat. Aenean posuere nisl nec ex blandit, ut imperdiet magna mollis. Integer eu mauris eu metus porttitor molestie. Donec sem augue, vestibulum a ipsum sit amet, consectetur scelerisque elit. Quisque viverra, lorem eu porta tincidunt, lorem nisl sagittis magna, sollicitudin pulvinar ligula enim sit amet risus. Suspendisse potenti. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed consequat molestie nibh, a lobortis augue venenatis eu. Ut iaculis dignissim condimentum. Sed cursus, nibh iaculis cursus finibus, ligula turpis accumsan tellus, malesuada mollis felis ligula sit amet odio.</string>
+
     <string name="movie_poster_description">Movie poster</string>
     <string name="release_date">Released on %s.</string>
     <string name="synopsis">Synopsis</string>
     <string name="vote_average">Average rating of %.1f.</string>
-    <string name="error_message">An error has ocurred. Please try again.</string>
-    <string name="refresh">Refresh</string>
+    <string name="add_to_favorites">Add to favorites</string>
+    <string name="remove_from_favorites">Remove from favorites</string>
+    <string name="empty_favorites_list">You don\'t have favorite movies.</string>
+    <string name="trailers">Trailers</string>
+    <string name="reviews">Reviews</string>
+    <string name="no_reviews">There are no reviews for this movie.</string>
 </resources>

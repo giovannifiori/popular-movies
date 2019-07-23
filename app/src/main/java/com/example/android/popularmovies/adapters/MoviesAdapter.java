@@ -14,6 +14,7 @@ import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.services.ServiceUtils;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
@@ -22,7 +23,6 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
 
     public interface PosterClickListener {
         /**
-         *
          * @param selectedMovie Movie that was clicked
          */
         void onClick(Movie selectedMovie);
@@ -30,6 +30,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
 
     public MoviesAdapter(PosterClickListener listener) {
         mClickListener = listener;
+        mMoviesData = new ArrayList<>();
     }
 
     class MoviesAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -73,19 +74,17 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
 
     @Override
     public int getItemCount() {
-        if (mMoviesData == null) return 0;
         return mMoviesData.size();
     }
 
-    public void setMoviesData(@NonNull List<Movie> moviesData, boolean append) {
-        if(mMoviesData == null) {
-            mMoviesData = moviesData;
-        } else {
-            if(!append) {
-                mMoviesData.clear();
-            }
-            mMoviesData.addAll(moviesData);
-        }
+    public void setMovies(@NonNull List<Movie> movies) {
+        mMoviesData.clear();
+        mMoviesData.addAll(movies);
+        notifyDataSetChanged();
+    }
+
+    public void appendMovies(@NonNull List<Movie> movies) {
+        mMoviesData.addAll(movies);
         notifyDataSetChanged();
     }
 }
