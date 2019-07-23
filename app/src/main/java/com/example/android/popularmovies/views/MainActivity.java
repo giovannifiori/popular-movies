@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.example.android.popularmovies.models.Movie;
 import com.example.android.popularmovies.viewmodels.MainViewModel;
 import com.example.android.popularmovies.viewmodels.factory.MainViewModelFactory;
 
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -31,10 +33,14 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.PosterClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String LAST_FETCH_BUNDLE_KEY = "last-fetch-mode";
+    private static final String LAST_PAGE_BUNDLE_KEY = "last-fetch-page";
+    private static final String MOVIES_BUNDLE_KEY = "movies-bundle";
+    private static final String LAYOUT_MANAGER_STATE_BUNDLE_KEY = "layout-manager-state";
     public static final String MOVIE_EXTRA = "com.example.android.popularmovies_movie";
 
     private @FetchMode
-    String mLastFetchBy = NONE;
+    String mLastFetchBy = FETCH_MOST_POPULAR;
 
     @BindView(R.id.pb_loading_indicator)
     ProgressBar mLoadingIndicator;
@@ -50,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
 
     private MoviesAdapter mMoviesAdapter;
     private boolean mIsLoadingMovies = false;
+    private boolean mIsActivityRecreated = false;
     private int mMoviesPageNumber = 1;
 
     private MainViewModel mViewModel;
@@ -64,6 +71,22 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     private static final String FETCH_FAVORITES = "favorites";
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(LAST_FETCH_BUNDLE_KEY, mLastFetchBy);
+        outState.putInt(LAST_PAGE_BUNDLE_KEY, mMoviesPageNumber);
+
+        outState.remove(MOVIES_BUNDLE_KEY);
+        Movie[] movieArr = new Movie[mMoviesAdapter.getItemCount()];
+        outState.putParcelableArray(MOVIES_BUNDLE_KEY, mMoviesAdapter.getMovies().toArray(movieArr));
+
+        if (mRecyclerView.getLayoutManager() != null) {
+            outState.putParcelable(LAYOUT_MANAGER_STATE_BUNDLE_KEY, mRecyclerView.getLayoutManager().onSaveInstanceState());
+        }
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -72,7 +95,22 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         initView();
         setupViewModel();
 
-        fetchMovies(FETCH_MOST_POPULAR);
+        if (savedInstanceState != null) {
+            mIsActivityRecreated = true;
+            mLastFetchBy = savedInstanceState.getString(LAST_FETCH_BUNDLE_KEY, FETCH_MOST_POPULAR);
+            mMoviesPageNumber = savedInstanceState.getInt(LAST_PAGE_BUNDLE_KEY, 1);
+
+            Movie[] movieArr = (Movie[]) savedInstanceState.getParcelableArray(MOVIES_BUNDLE_KEY);
+            mMoviesAdapter.setMovies(Arrays.asList(movieArr));
+
+            Parcelable savedRecyclerLayoutState = savedInstanceState.getParcelable(LAYOUT_MANAGER_STATE_BUNDLE_KEY);
+            if (mRecyclerView.getLayoutManager() != null) {
+                mRecyclerView.getLayoutManager().onRestoreInstanceState(savedRecyclerLayoutState);
+            }
+        } else {
+            mIsActivityRecreated = false;
+            fetchMovies(mLastFetchBy);
+        }
     }
 
     @Override
@@ -138,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
     private void fetchMovies(@FetchMode String fetchMode) {
         mIsLoadingMovies = true;
         mLastFetchBy = fetchMode;
+
         if (isFirstPage()) {
             showLoadingIndicator();
         }
@@ -179,18 +218,24 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
         if (mViewModel == null) {
             MainViewModelFactory factory = new MainViewModelFactory(getApplicationContext());
             mViewModel = ViewModelProviders.of(this, factory).get(MainViewModel.class);
+            subscribeDataObservers();
         }
-
-        subscribeDataObservers();
     }
 
     private void subscribeDataObservers() {
-        mViewModel.getMovies().observe(this, this::handleMoviesResponse);
+        if (!mViewModel.getMovies().hasObservers()) {
+            mViewModel.getMovies().observe(this, this::handleMoviesResponse);
+        }
     }
 
     private void handleMoviesResponse(MoviesResponseEvent event) {
         mIsLoadingMovies = false;
         mListLoadingIndicator.setVisibility(View.INVISIBLE);
+
+        if (mIsActivityRecreated) {
+            mIsActivityRecreated = false;
+            return;
+        }
 
         if (event.getError() != null) {
             if (isFirstPage())
@@ -222,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Pos
             return;
         }
 
-        if(movies.isEmpty()) {
+        if (movies.isEmpty()) {
             showErrorMessage(R.string.empty_favorites_list);
             return;
         }
