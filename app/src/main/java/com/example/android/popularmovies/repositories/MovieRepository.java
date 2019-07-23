@@ -48,12 +48,13 @@ public class MovieRepository {
     }
 
     public void getMovies(String sortType, int pageNumber) {
+        boolean isNewData = pageNumber == 1;
         mMovieService.getMovies(sortType, BuildConfig.ApiKey, pageNumber).enqueue(new Callback<MovieAPIResponse>() {
             @Override
             public void onResponse(@NonNull Call<MovieAPIResponse> call, @NonNull Response<MovieAPIResponse> response) {
                 if (response.isSuccessful()) {
                     if (response.body() != null) {
-                        mBus.post(new MoviesResponseEvent(response.body().getMovies()));
+                        mBus.post(new MoviesResponseEvent(response.body().getMovies(), isNewData));
                     }
                 } else {
                     mBus.post(new MoviesResponseEvent(new WebException(response.code())));
